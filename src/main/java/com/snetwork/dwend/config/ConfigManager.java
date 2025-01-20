@@ -1,0 +1,67 @@
+package com.snetwork.dwend.config;
+
+
+import com.snetwork.dwend.config.files.Config;
+import com.snetwork.dwend.config.files.MessagesConfig;
+
+public class ConfigManager {
+    private static ConfigManager instance;
+    private Config config;
+    private MessagesConfig messagesConfig;
+
+    public ConfigManager() {
+        load();
+    }
+
+    public static ConfigManager getInstance() {
+        if (instance == null) instance = new ConfigManager();
+        return instance;
+    }
+
+    public MessagesConfig getMessagesConfig() {
+        return messagesConfig;
+    }
+
+    public Config getConfig() {
+        return config;
+    }
+
+
+    private void load() {
+        config = new Config();
+        config.reload();
+
+        messagesConfig = new MessagesConfig();
+        messagesConfig.reload();
+
+
+    }
+
+    public void reloadAll() {
+        reloadConfig();
+        reloadMessagesConfig();
+    }
+
+    public void saveAll() {
+        saveConfig();
+        saveMessagesConfig();
+    }
+
+    public void reloadMessagesConfig() {
+        messagesConfig.reload();
+    }
+
+    public void saveMessagesConfig() {
+        messagesConfig.save();
+    }
+
+    public void saveConfig() {
+        config.save();
+    }
+
+    public void reloadConfig() {
+        config.reload();
+    }
+
+
+}

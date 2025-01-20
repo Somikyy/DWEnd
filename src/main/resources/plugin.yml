@@ -1,0 +1,12 @@
+author: Zuif
+version: 1.0
+api-version: 1.13
+name: DWEnd
+main: me.snetwork.dwend
+depend:
+  - DecentHolograms
+commands:
+  dwend:
+permissions:
+  dwend.admin:
+    default: op

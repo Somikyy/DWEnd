@@ -1,0 +1,16 @@
+schedule:
+  open:
+    day: "SATURDAY"
+    hour: 13
+    minute: 0
+  close:
+    day: "MONDAY"
+    hour: 18
+    minute: 0
+
+# тут будет айди голограммы которая обновялется
+hologram: ""
+hologram-location: ""
+
+# отдача от прыжка в закрытый портал
+knockback: 2
