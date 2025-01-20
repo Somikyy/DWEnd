@@ -32,7 +32,11 @@ public class HologramUtils {
     }
 
     public static void deleteHologram(String hologramId) {
-        holograms.remove(hologramId).delete();
+        Hologram hologram = holograms.get(hologramId);
+        if (hologram != null) {
+            hologram.delete();
+            holograms.remove(hologramId);
+        }
     }
 
     public static void updateHologram(String hologramId, boolean isOpen) {

@@ -2,15 +2,40 @@ package com.snetwork.dwend.listener;
 
 import com.snetwork.dwend.config.ConfigManager;
 import com.snetwork.dwend.config.files.Config;
+import com.snetwork.dwend.config.files.MessagesConfig;
+import com.snetwork.dwend.config.model.ConfigSound;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
 public class EndListener implements Listener {
+    private final ConfigManager configManager = ConfigManager.getInstance();
+    private final Config config = configManager.getConfig();
+    private final MessagesConfig messages = configManager.getMessagesConfig();
 
+    @EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        if (player.getWorld().getEnvironment() != World.Environment.THE_END) {
+            return;
+        }
+
+        String command = event.getMessage().split(" ")[0].toLowerCase();
+        if (config.getBlockedCommands().contains(command)) {
+            event.setCancelled(true);
+            for (String line : messages.getMessagesColorizedList(MessagesConfig.Message.BLOCKED_COMMAND)) {
+                player.sendMessage(line);
+            }
+            return;
+        }
+    }
 
     @EventHandler
     private void onEnd(PlayerTeleportEvent event) {
@@ -25,12 +50,8 @@ public class EndListener implements Listener {
         event.setCancelled(true);
 
         Vector direction = player.getLocation().getDirection().normalize();
-
         Vector knockback = direction.multiply(-1).multiply(config.getKnockback());
-
         knockback.setY(config.getKnockback());
-
         player.setVelocity(knockback);
-
     }
 }

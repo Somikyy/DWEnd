@@ -123,7 +123,12 @@ public class MessagesConfig extends AbstractConfiguration {
         PLACED("placed"),
         RELOADED("reloaded"),
         HOLOGRAM_CLOSED("hologram-closed", true),
-        HOLOGRAM_OPENED("hologram-opened", true);
+        HOLOGRAM_OPENED("hologram-opened", true),
+        BLOCKED_COMMAND("blocklist-commands-message"),
+        IN_CLOSED_END("player-in-closed-end"),
+        OPENING_END("opening-end-message", true),
+        CLOSING_END("closing-end-message", true),
+        OPENED_END("opened-end-message", true);
 
         private final String path;
         private final boolean list;

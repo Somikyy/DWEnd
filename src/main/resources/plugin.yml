@@ -2,7 +2,7 @@ author: Zuif
 version: 1.0
 api-version: 1.13
 name: DWEnd
-main: me.snetwork.dwend
+main: com.snetwork.dwend.DWEnd
 depend:
   - DecentHolograms
 commands:

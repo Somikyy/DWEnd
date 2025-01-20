@@ -14,3 +14,14 @@ hologram-location: ""
 
 # отдача от прыжка в закрытый портал
 knockback: 2
+
+# блоклист команд в енде
+blocklist-commands:
+  - "/command1"
+  - "/command2"
+
+# звук при "кике" игрока из энда
+player-in-closed-end-sound:
+  name: BLOCK_GLASS_BREAK
+  volume: 1.0
+  pitch: 1.0

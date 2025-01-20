@@ -1,12 +1,15 @@
 package com.snetwork.dwend.config.files;
 
+import com.snetwork.dwend.config.model.ConfigSound;
 import com.snetwork.dwend.util.LocationUtils;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class Config extends AbstractConfiguration {
 
@@ -19,6 +22,13 @@ public class Config extends AbstractConfiguration {
     private int closeMinute;
     private int knockback;
     private Location hologramLocation;
+
+    private List<String> closingEndMessage;
+    private List<String> openingEndMessage;
+    private List<String> openedEndMessage;
+    private List<String> blockedCommands;
+    private ConfigSound playerInClosedEndSound;
+    private String blockedCommandMessage;
 
     public Config() {
         super("/", "config.yml", true);
@@ -54,6 +64,7 @@ public class Config extends AbstractConfiguration {
     public void reload() {
         super.reload();
         YamlConfiguration cfg = getYamlConfiguration();
+
         this.hologramId = cfg.getString("hologram");
         this.openDay = cfg.getString("schedule.open.day");
         this.openHour = cfg.getInt("schedule.open.hour");
@@ -62,8 +73,26 @@ public class Config extends AbstractConfiguration {
         this.closeHour = cfg.getInt("schedule.close.hour");
         this.closeMinute = cfg.getInt("schedule.close.minute");
         this.knockback = cfg.getInt("knockback");
-        if (!cfg.getString("hologram-location").isEmpty())
+
+        this.closingEndMessage = cfg.getStringList("closing-end-message");
+        this.openingEndMessage = cfg.getStringList("opening-end-message");
+        this.openedEndMessage = cfg.getStringList("opened-end-message");
+        this.blockedCommands = cfg.getStringList("blocklist-commands");
+
+        ConfigurationSection soundSection = cfg.getConfigurationSection("player-in-closed-end-sound");
+        if (soundSection != null) {
+            this.playerInClosedEndSound = new ConfigSound(
+                    soundSection.getString("name"),
+                    (float) soundSection.getDouble("volume"),
+                    (float) soundSection.getDouble("pitch")
+            );
+        }
+
+        this.blockedCommandMessage = cfg.getString("blocklist-commands-message");
+
+        if (!cfg.getString("hologram-location", "").isEmpty()) {
             this.hologramLocation = LocationUtils.stringToLocation(cfg.getString("hologram-location"));
+        }
     }
 
     public int getKnockback() {
@@ -119,5 +148,29 @@ public class Config extends AbstractConfiguration {
 
     public int getCloseMinute() {
         return closeMinute;
+    }
+
+    public List<String> getClosingEndMessage() {
+        return closingEndMessage;
+    }
+
+    public List<String> getOpeningEndMessage() {
+        return openingEndMessage;
+    }
+
+    public List<String> getOpenedEndMessage() {
+        return openedEndMessage;
+    }
+
+    public List<String> getBlockedCommands() {
+        return blockedCommands;
+    }
+
+    public ConfigSound getPlayerInClosedEndSound() {
+        return playerInClosedEndSound;
+    }
+
+    public String getBlockedCommandMessage() {
+        return blockedCommandMessage;
     }
 }

@@ -45,12 +45,14 @@ public class DWEndCommand extends AbstractCommand {
     }
 
     private void delete(CommandSender sender) {
+        if (config.getHologramId().isEmpty()) {
+            sender.sendMessage("§cГолограмма не найдена.");
+            return;
+        }
 
         HologramUtils.deleteHologram(config.getHologramId());
         config.deleteHologram();
-        sender.sendMessage("Hologram deleted.");
-
-
+        sender.sendMessage("§aГолограмма удалена.");
     }
 
     private void place(CommandSender sender) {
@@ -62,8 +64,6 @@ public class DWEndCommand extends AbstractCommand {
         player.sendMessage(messagesConfig.replaceColorizedPlaceholder(
                 MessagesConfig.Message.PLACED, Map.of("%id%", "dwend_hologram")
         ));
-
-
     }
 
     private void reload(CommandSender sender) {
