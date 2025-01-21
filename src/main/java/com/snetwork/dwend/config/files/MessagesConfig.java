@@ -1,6 +1,7 @@
 package com.snetwork.dwend.config.files;
 
 
+import com.snetwork.dwend.util.ColorUtils;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
@@ -154,23 +155,22 @@ public class MessagesConfig extends AbstractConfiguration {
 
     public static class MessagesUtils {
         /**
-         * @param input
-         * @return Return colorized string
+         * @param input текст для окрашивания
+         * @return окрашенный текст
          */
         public static String colorize(String input) {
-            if (input != null)
-                return ChatColor.translateAlternateColorCodes('&', input);
-            else
-                return input;
+            if (input == null) return null;
+            return ColorUtils.colorize(input);
         }
 
         /**
-         * @param lore
-         * @return Return colorized string list(i use this for lore)
+         * @param lore список строк для окрашивания
+         * @return список окрашенных строк
          */
         public static List<String> colorizeList(List<String> lore) {
-            return lore.stream().map(MessagesUtils::colorize).collect(Collectors.toList());
+            return lore.stream()
+                    .map(MessagesUtils::colorize)
+                    .collect(Collectors.toList());
         }
     }
-
 }
