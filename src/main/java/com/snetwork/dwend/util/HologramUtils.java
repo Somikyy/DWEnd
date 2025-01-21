@@ -20,8 +20,13 @@ public class HologramUtils {
     private static final Map<String, Hologram> holograms = new HashMap<>();
 
     public static void createHologram(String hologramId, Location location) {
+        Hologram existingHologram = DHAPI.getHologram(hologramId);
+        if (existingHologram != null) {
+            existingHologram.delete();
+        }
+
         if (holograms.containsKey(hologramId)) {
-            return;
+            holograms.remove(hologramId);
         }
 
         Hologram hologram = DHAPI.createHologram(hologramId, location);
@@ -36,6 +41,12 @@ public class HologramUtils {
         if (hologram != null) {
             hologram.delete();
             holograms.remove(hologramId);
+            return;
+        }
+
+        hologram = DHAPI.getHologram(hologramId);
+        if (hologram != null) {
+            hologram.delete();
         }
     }
 
