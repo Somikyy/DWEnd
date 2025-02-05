@@ -5,6 +5,7 @@ import com.snetwork.dwend.util.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 
 import java.time.DayOfWeek;
 import java.time.ZoneId;
@@ -30,8 +31,8 @@ public class Config extends AbstractConfiguration {
     private ConfigSound playerInClosedEndSound;
     private String blockedCommandMessage;
 
-    public Config() {
-        super("/", "config.yml", true);
+    public Config(Plugin plugin) {
+        super(plugin, "/", "config.yml", true);
         reload();
     }
 
@@ -67,17 +68,15 @@ public class Config extends AbstractConfiguration {
 
         this.hologramId = cfg.getString("hologram");
         this.openDay = cfg.getString("schedule.open.day");
-        this.openHour = cfg.getInt("schedule.open.hour");
-        this.openMinute = cfg.getInt("schedule.open.minute");
         this.closeDay = cfg.getString("schedule.close.day");
-        this.closeHour = cfg.getInt("schedule.close.hour");
-        this.closeMinute = cfg.getInt("schedule.close.minute");
         this.knockback = cfg.getInt("knockback");
-
-        this.closingEndMessage = cfg.getStringList("closing-end-message");
-        this.openingEndMessage = cfg.getStringList("opening-end-message");
-        this.openedEndMessage = cfg.getStringList("opened-end-message");
         this.blockedCommands = cfg.getStringList("blocklist-commands");
+
+        String openTime = cfg.getString("schedule.open.time");
+        String closeTime = cfg.getString("schedule.close.time");
+
+        if (openTime != null) parseOpenTime(openTime);
+        if (closeTime != null) parseCloseTime(closeTime);
 
         ConfigurationSection soundSection = cfg.getConfigurationSection("player-in-closed-end-sound");
         if (soundSection != null) {
@@ -93,6 +92,40 @@ public class Config extends AbstractConfiguration {
         if (!cfg.getString("hologram-location", "").isEmpty()) {
             this.hologramLocation = LocationUtils.stringToLocation(cfg.getString("hologram-location"));
         }
+    }
+
+    private void parseOpenTime(String timeStr) {
+        String[] parts = timeStr.split(" ");
+        String[] timeParts = parts[0].split(":");
+        String period = parts[1];
+
+        int hour = Integer.parseInt(timeParts[0]);
+        this.openMinute = Integer.parseInt(timeParts[1]);
+
+        if (period.equalsIgnoreCase("PM") && hour != 12) {
+            hour += 12;
+        } else if (period.equalsIgnoreCase("AM") && hour == 12) {
+            hour = 0;
+        }
+
+        this.openHour = hour;
+    }
+
+    private void parseCloseTime(String timeStr) {
+        String[] parts = timeStr.split(" ");
+        String[] timeParts = parts[0].split(":");
+        String period = parts[1];
+
+        int hour = Integer.parseInt(timeParts[0]);
+        this.closeMinute = Integer.parseInt(timeParts[1]);
+
+        if (period.equalsIgnoreCase("PM") && hour != 12) {
+            hour += 12;
+        } else if (period.equalsIgnoreCase("AM") && hour == 12) {
+            hour = 0;
+        }
+
+        this.closeHour = hour;
     }
 
     public int getKnockback() {

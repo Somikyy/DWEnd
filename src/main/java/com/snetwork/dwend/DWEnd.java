@@ -8,6 +8,7 @@ import com.snetwork.dwend.config.model.ConfigSound;
 import com.snetwork.dwend.listener.EndListener;
 import com.snetwork.dwend.util.HologramUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -21,6 +22,8 @@ import java.util.List;
 
 public class DWEnd extends JavaPlugin {
     private static DWEnd instance;
+    private MessagesConfig messages;
+    private Config config;
 
     public static DWEnd getInstance() {
         return instance;
@@ -29,42 +32,41 @@ public class DWEnd extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        ConfigManager.getInstance();
+        ConfigManager.init(this);
+
+        messages = ConfigManager.getInstance().getMessagesConfig();
+        config = ConfigManager.getInstance().getConfig();
 
         new DWEndCommand();
-        Config config = ConfigManager.getInstance().getConfig();
-        MessagesConfig messages = ConfigManager.getInstance().getMessagesConfig();
-
-        if (!config.getHologramId().isEmpty())
+        if (!config.getHologramId().isEmpty()) {
             HologramUtils.createHologram(config.getHologramId(), config.getHologramLocation());
+        }
 
-        Bukkit.getScheduler().runTaskTimer(this,
-                () -> {
-                    String hologramId = config.getHologramId();
-                    if (!hologramId.isEmpty()) {
-                        HologramUtils.updateHologram(hologramId, config.isOpen());
-                    }
-                }, 20L, 20L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            String hologramId = config.getHologramId();
+            if (!hologramId.isEmpty()) {
+                boolean isOpen = config.isOpen();
+                HologramUtils.updateHologram(hologramId, isOpen);
+                checkAndSendNotifications(isOpen);
+            }
+        }, 20L, 20L);
 
-        Bukkit.getScheduler().runTaskTimer(this,
-                this::checkPlayersInEnd, 20L, 20L);
+        Bukkit.getScheduler().runTaskTimer(this, this::checkPlayersInEnd, 20L, 20L);
 
         getServer().getPluginManager().registerEvents(new EndListener(), this);
         getLogger().info("DWEnd has been enabled!");
     }
 
     private void checkPlayersInEnd() {
-        Config config = ConfigManager.getInstance().getConfig();
-        MessagesConfig messages = ConfigManager.getInstance().getMessagesConfig();
-
         if (!config.isOpen()) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (player.getWorld().getEnvironment() == World.Environment.THE_END) {
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "spawn " + player.getName());
+                    World spawnWorld = Bukkit.getWorlds().get(0);
+                    Location spawnLoc = spawnWorld.getSpawnLocation();
+                    player.teleport(spawnLoc);
 
-                    for (String line : messages.getMessagesColorizedList(MessagesConfig.Message.IN_CLOSED_END)) {
-                        player.sendMessage(line);
-                    }
+                    messages.getMessagesColorizedList(MessagesConfig.Message.IN_CLOSED_END)
+                            .forEach(player::sendMessage);
 
                     ConfigSound sound = config.getPlayerInClosedEndSound();
                     if (sound != null) {
@@ -84,51 +86,66 @@ public class DWEnd extends JavaPlugin {
     }
 
     private void checkAndSendNotifications(boolean isOpen) {
-        Config config = ConfigManager.getInstance().getConfig();
-        MessagesConfig messages = ConfigManager.getInstance().getMessagesConfig();
-
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
 
-        if (isOpen) {
-            LocalDateTime closeTime = getNextCloseTime();
-            long minutesUntilClose = ChronoUnit.MINUTES.between(now, closeTime);
-
-            if (minutesUntilClose == 30) {
-                broadcastMessage(config.getClosingEndMessage());
-            }
-        } else {
+        if (!isOpen) {
             LocalDateTime openTime = getNextOpenTime();
             long minutesUntilOpen = ChronoUnit.MINUTES.between(now, openTime);
 
-            if (minutesUntilOpen == 15) {
-                broadcastMessage(config.getOpeningEndMessage());
-            } else if (minutesUntilOpen == 0) {
-                broadcastMessage(config.getOpenedEndMessage());
+            if (minutesUntilOpen <= 15 && minutesUntilOpen >= 14) {
+                messages.getMessagesColorizedList(MessagesConfig.Message.OPENING_END)
+                        .forEach(Bukkit::broadcastMessage);
             }
         }
     }
 
-    private void broadcastMessage(List<String> messages) {
+    private void broadcastMessages(List<String> messages) {
         if (messages == null || messages.isEmpty()) return;
-
-        for (String message : messages) {
-            Bukkit.broadcastMessage(MessagesConfig.MessagesUtils.colorize(message));
-        }
+        messages.forEach(Bukkit::broadcastMessage);
     }
 
     private LocalDateTime getNextOpenTime() {
-        Config config = ConfigManager.getInstance().getConfig();
-        return LocalDateTime.now(ZoneId.of("Europe/Moscow"))
-                .with(DayOfWeek.valueOf(config.getOpenDay()))
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        DayOfWeek currentDay = now.getDayOfWeek();
+        DayOfWeek targetDay = DayOfWeek.valueOf(config.getOpenDay());
+
+        LocalDateTime targetTime = now
                 .withHour(config.getOpenHour())
-                .withMinute(config.getOpenMinute());
+                .withMinute(config.getOpenMinute())
+                .withSecond(0)
+                .withNano(0);
+
+        // If target day is today but time has passed, go to next week
+        if (currentDay == targetDay && now.isAfter(targetTime)) {
+            targetTime = targetTime.plusWeeks(1);
+        }
+
+        // Move to target day
+        while (targetTime.getDayOfWeek() != targetDay) {
+            targetTime = targetTime.plusDays(1);
+        }
+
+        return targetTime;
     }
 
     private LocalDateTime getNextCloseTime() {
-        Config config = ConfigManager.getInstance().getConfig();
-        return LocalDateTime.now(ZoneId.of("Europe/Moscow"))
-                .with(DayOfWeek.valueOf(config.getCloseDay()))
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        DayOfWeek targetDay = DayOfWeek.valueOf(config.getCloseDay());
+
+        LocalDateTime targetTime = now
                 .withHour(config.getCloseHour())
-                .withMinute(config.getCloseMinute());
+                .withMinute(config.getCloseMinute())
+                .withSecond(0)
+                .withNano(0);
+
+        if (now.getDayOfWeek() == targetDay && now.isAfter(targetTime)) {
+            targetTime = targetTime.plusWeeks(1);
+        }
+
+        while (targetTime.getDayOfWeek() != targetDay) {
+            targetTime = targetTime.plusDays(1);
+        }
+
+        return targetTime;
     }
 }

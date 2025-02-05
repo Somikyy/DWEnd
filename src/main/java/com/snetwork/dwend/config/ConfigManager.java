@@ -1,6 +1,7 @@
 package com.snetwork.dwend.config;
 
 
+import com.snetwork.dwend.DWEnd;
 import com.snetwork.dwend.config.files.Config;
 import com.snetwork.dwend.config.files.MessagesConfig;
 
@@ -8,13 +9,21 @@ public class ConfigManager {
     private static ConfigManager instance;
     private Config config;
     private MessagesConfig messagesConfig;
+    private final DWEnd plugin;
 
-    public ConfigManager() {
+    public ConfigManager(DWEnd plugin) {
+        this.plugin = plugin;
         load();
     }
 
+    public static ConfigManager init(DWEnd plugin) {
+        if (instance == null) {
+            instance = new ConfigManager(plugin);
+        }
+        return instance;
+    }
+
     public static ConfigManager getInstance() {
-        if (instance == null) instance = new ConfigManager();
         return instance;
     }
 
@@ -26,15 +35,12 @@ public class ConfigManager {
         return config;
     }
 
-
     private void load() {
-        config = new Config();
+        config = new Config(plugin);
         config.reload();
 
-        messagesConfig = new MessagesConfig();
+        messagesConfig = new MessagesConfig(plugin);
         messagesConfig.reload();
-
-
     }
 
     public void reloadAll() {

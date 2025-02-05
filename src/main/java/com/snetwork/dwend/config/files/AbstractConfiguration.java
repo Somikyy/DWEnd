@@ -14,9 +14,10 @@ public abstract class AbstractConfiguration {
     private final String pathToFolder;
     private File file;
     private YamlConfiguration configuration;
+    protected final  Plugin plugin;
 
-    public AbstractConfiguration(final String path, final String filename, boolean copy) {
-        Plugin plugin = DWEnd.getInstance();
+    public AbstractConfiguration(Plugin plugin, final String path, final String filename, boolean copy) {
+        this.plugin = plugin;
         this.pathToFolder = Objects.requireNonNull(plugin).getDataFolder() + path;
         this.path = pathToFolder + filename;
         setFile();

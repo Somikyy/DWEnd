@@ -3,15 +3,11 @@ package com.snetwork.dwend.listener;
 import com.snetwork.dwend.config.ConfigManager;
 import com.snetwork.dwend.config.files.Config;
 import com.snetwork.dwend.config.files.MessagesConfig;
-import com.snetwork.dwend.config.model.ConfigSound;
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
@@ -30,10 +26,8 @@ public class EndListener implements Listener {
         String command = event.getMessage().split(" ")[0].toLowerCase();
         if (config.getBlockedCommands().contains(command)) {
             event.setCancelled(true);
-            for (String line : messages.getMessagesColorizedList(MessagesConfig.Message.BLOCKED_COMMAND)) {
-                player.sendMessage(line);
-            }
-            return;
+            messages.getMessagesColorizedList(MessagesConfig.Message.BLOCKED_COMMAND)
+                    .forEach(player::sendMessage);
         }
     }
 
